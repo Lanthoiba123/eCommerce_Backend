@@ -88,6 +88,59 @@ const productVariantSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    ratings: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'review',
+      },
+    ],
+
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    showInCarousel: {
+      type: Boolean,
+      default: false,
+    },
+
+    artisan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'artisan',
+    },
+
+    // Certifications and authenticity
+    certifications: [
+      {
+        name: String,
+        certificateNumber: String,
+        issuedBy: String,
+        validUntil: Date,
+      },
+    ],
+
+    // Geographic indication
+    geographicIndication: {
+      region: String, // Example: "Kanchipuram"
+      state: String, // Example: "Tamil Nadu"
+      isGICertified: Boolean, // Example: true - indicates product has GI certification
+    },
   },
   {
     timestamps: true,

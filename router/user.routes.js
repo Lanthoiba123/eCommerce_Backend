@@ -8,6 +8,7 @@ const {
   getTotalUserCount,
   getAllCustomers,
   logoutUser,
+  googleLogin,
 } = require('../controller/userController');
 const authenticateCustomer = require('../middlewares/authenticateCustomer');
 const authenticateAdmin = require('../middlewares/authenticateAdmin');
@@ -18,6 +19,7 @@ route.post('/register', createUser); //http:localhost:3000/user/register
 // admin get all customers
 route.get('/getAllCustomers', authenticateAdmin, getAllCustomers);
 route.post('/login', loginUser);
+route.post('/googlelogin', googleLogin);
 route.post('/logout', authenticateCustomer, logoutUser);
 // Admin get total users
 route.get('/totalUsers', getTotalUserCount);

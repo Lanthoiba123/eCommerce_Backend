@@ -79,7 +79,7 @@ const addNewAddress = asyncHandler(async (req, res) => {
   }
   await existingUser.save();
   const { password: _, ...userWithoutPassword } = existingUser.toObject();
-  return res.status(201).json({ success: true, data: userWithoutPassword });
+  return res.status(201).json({ success: true, data: addressResponse });
 });
 
 const getAddressByUserId = asyncHandler(async (req, res) => {

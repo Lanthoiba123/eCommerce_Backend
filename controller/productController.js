@@ -13,7 +13,7 @@ const mongoose = require('mongoose');
 // const fs = require("node:fs");
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, category, subcategory, shop, variants, artisan } =
+  const { name, description, category, subcategory, shop, variants, ...rest } =
     req.body;
 
   const { files } = req;
@@ -55,7 +55,7 @@ const createProduct = asyncHandler(async (req, res) => {
     category,
     shop,
     images,
-    ...req.body,
+    ...rest,
   });
 
   // create product variants for the prouct
@@ -64,12 +64,14 @@ const createProduct = asyncHandler(async (req, res) => {
   for (const variant of variantList) {
     const productVariant = await productVariantModel.create({
       product: product._id,
-      color: variant.color,
-      pattern: variant.pattern,
-      size: variant.size,
-      price: variant.price,
-      stock: variant.stock,
       isActive: variant.isActive !== undefined ? variant.isActive : true,
+      ...variant,
+      // color: variant.color,
+      // pattern: variant.pattern,
+      // size: variant.size,
+      // price: variant.price,
+      // stock: variant.stock,
+      // isActive: variant.isActive !== undefined ? variant.isActive : true,
     });
     createdVariants.push(productVariant);
   }
@@ -150,7 +152,11 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
   // Text search on name and description
   if (queries?.search) {
-    const searchRegex = new RegExp(queries.search, 'i');
+    // Escape special regex characters to prevent injection
+    const escapeRegExp = (string) =>
+      string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const searchRegex = new RegExp(escapeRegExp(queries.search), 'i');
     queryObj.$or = [
       { name: searchRegex },
       { description: searchRegex },
@@ -186,7 +192,6 @@ const getAllProducts = asyncHandler(async (req, res) => {
       // Check if the field name contains operator suffix (e.g. discount_gte)
       for (const [symbol, mongoOp] of Object.entries(operators)) {
         if (lastPart.includes(symbol)) {
-          console.log('yes');
           // Split field name into base field and operator
           const [baseField] = lastPart.split(symbol);
           path[path.length - 1] = baseField.split('_')[0].trim();
@@ -201,7 +206,6 @@ const getAllProducts = asyncHandler(async (req, res) => {
             ].includes(path.join('.'))
           ) {
             value = Number(value);
-            console.log(value);
           }
           break;
         }
@@ -217,13 +221,16 @@ const getAllProducts = asyncHandler(async (req, res) => {
     }
   }
 
-  // Pagination with validation
-  const page = Math.max(1, Number.parseInt(queries?.page, 10) || 1);
-  const limit = Math.min(
-    100,
-    Math.max(1, Number.parseInt(queries?.limit, 10) || 10)
-  );
+  // Pagination
+  const page = Number.parseInt(queries.page) || 1;
+  const limit = Number.parseInt(queries.limit) || 10;
   const skip = (page - 1) * limit;
+
+  // Ensure page and limit are within reasonable bounds
+  if (page < 1 || limit < 1 || limit > 100) {
+    res.status(400);
+    throw new Error('Invalid pagination parameters');
+  }
 
   let productsQuery = productModel.find(queryObj);
 
@@ -234,59 +241,68 @@ const getAllProducts = asyncHandler(async (req, res) => {
       match: populateQueries.variants.match,
       options: { lean: true },
     });
-    console.log(productsQuery);
   } else {
     productsQuery = productsQuery.populate('variants');
   }
+
+  // Get total count for pagination
+  const totalProducts = await productModel.countDocuments(queryObj);
+  const totalPages = Math.ceil(totalProducts / limit);
 
   productsQuery = productsQuery
     .populate('category')
     .populate('subcategory')
     .populate('shop')
-    .populate('artisan')
+    .sort({ _id: -1 })
     .skip(skip)
     .limit(limit)
-    .lean(); // Use lean() for better performance
-
-  // Sorting with validation
-  const validSortFields = [
-    'createdAt',
-    'name',
-    'averageRating',
-    'totalReviews',
-  ];
-  const sortBy = validSortFields.includes(queries?.sortBy)
-    ? queries.sortBy
-    : 'createdAt';
-  const sortOrder = queries?.sortOrder === 'asc' ? 1 : -1;
-  productsQuery.sort({ [sortBy]: sortOrder });
+    .lean();
 
   try {
-    const [products, total] = await Promise.all([
-      productsQuery.exec(),
-      productModel.countDocuments(queryObj),
-    ]);
+    const products = await productsQuery.exec();
 
     // Filter out products with no matching variants if variant queries exist
     const filteredProducts = populateQueries.variants
       ? products.filter((product) => product.variants?.length > 0)
       : products;
 
-    const totalFilteredCount = filteredProducts.length;
-    const totalPages = Math.ceil(totalFilteredCount / limit);
-
     res.status(200).json({
       success: true,
-      count: totalFilteredCount,
-      total,
-      page,
-      pages: totalPages,
       products: filteredProducts,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalProducts,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     res.status(500);
     throw new Error(`Error fetching products: ${error.message}`);
   }
+});
+
+const getCarouselProducts = asyncHandler(async (req, res) => {
+  const products = await productModel
+    .find()
+    .populate({
+      path: 'variants',
+      match: { showInCarousel: true },
+      options: { lean: true },
+    })
+    .sort({ _id: -1 });
+
+  // Filter out products that have no variants with showInCarousel=true
+  const filteredProducts = products.filter(
+    (product) => product?.variants?.length > 0
+  );
+
+  res.status(200).json({
+    success: true,
+    products: filteredProducts,
+  });
 });
 
 const getProductById = asyncHandler(async (req, res) => {
@@ -1006,4 +1022,5 @@ module.exports = {
   getTotalProductCount,
   getCollectionNamesByCategoryAndSubcategory,
   getFilteredProducts,
+  getCarouselProducts,
 };

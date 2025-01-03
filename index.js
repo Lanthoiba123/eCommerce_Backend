@@ -1,50 +1,50 @@
-const express = require("express");
-const connect = require("./DB/mongoose");
-const cookieParser = require("cookie-parser");
-const userRoutes = require("./router/user.routes");
-const categoryRoutes = require("./router/category.routes");
-const productRoutes = require("./router/product.routes");
-const productVariantRoutes = require("./router/productVariant.routes");
-const wishlistRoutes = require("./router/wishlist.routes");
-const cardListRoutes = require("./router/cart.routes");
-const orderProductRoutes = require("./router/order.routes");
-const addressRoutes = require("./router/address.routes");
-const carouselRoutes = require("./router/carousel.routes");
-const contactRoutes = require("./router/contact.routes");
-const subCategoryRoutes = require("./router/subCategory.routes");
-const collectionRoutes = require("./router/collection.routes");
-const commentRatingRoutes = require("./router/commentRating.routes");
-const deliveryRoutes = require("./router/delivery.routes");
-const footerSubHeadingRoutes = require("./router/footerSubHeading.routes");
-const footerLinkRoutes = require("./router/footerlink.routes");
-const footerRoutes = require("./router/footer.routes");
-const aboutusRoutes = require("./router/aboutus.routes");
-const pricerangeRoutes = require("./router/priceRange.routes");
-const adminRoutes = require("./router/admin.routes");
-const testRoutes = require("./upload/testupload");
-const shopRoutes = require("./router/shop.routes.js");
-const fs = require("node:fs");
-const cors = require("cors");
-const Razorpay = require("razorpay");
-const crypto = require("node:crypto");
-const errorHandler = require("./errorHandler");
-const { totalmem } = require("node:os");
-require("dotenv").config();
+const express = require('express');
+const connect = require('./DB/mongoose');
+const cookieParser = require('cookie-parser');
+const userRoutes = require('./router/user.routes');
+const categoryRoutes = require('./router/category.routes');
+const productRoutes = require('./router/product.routes');
+const productVariantRoutes = require('./router/productVariant.routes');
+const wishlistRoutes = require('./router/wishlist.routes');
+const cardListRoutes = require('./router/cart.routes');
+const orderProductRoutes = require('./router/order.routes');
+const addressRoutes = require('./router/address.routes');
+const carouselRoutes = require('./router/carousel.routes');
+const contactRoutes = require('./router/contact.routes');
+const subCategoryRoutes = require('./router/subCategory.routes');
+const collectionRoutes = require('./router/collection.routes');
+const commentRatingRoutes = require('./router/commentRating.routes');
+const deliveryRoutes = require('./router/delivery.routes');
+const footerSubHeadingRoutes = require('./router/footerSubHeading.routes');
+const footerLinkRoutes = require('./router/footerlink.routes');
+const aboutusRoutes = require('./router/aboutus.routes');
+const pricerangeRoutes = require('./router/priceRange.routes');
+const adminRoutes = require('./router/admin.routes');
+const testRoutes = require('./upload/testupload');
+const shopRoutes = require('./router/shop.routes.js');
+const eyongkartInfoRoutes = require('./router/eyongkartInfo.routes.js');
+const fs = require('node:fs');
+const cors = require('cors');
+const Razorpay = require('razorpay');
+const crypto = require('node:crypto');
+const errorHandler = require('./errorHandler');
+const { totalmem } = require('node:os');
+require('dotenv').config();
 const PORT = process.env.PORT;
 const app = express();
-const https = require("node:https");
+const https = require('node:https');
 
 // CORS configuration
 app.use(
   cors({
     origin: [
-      "https://localhost:5173",
-      "https://localhost:5175",
-      "https://eyongkart.com",
-      "https://www.eyongkart.com",
+      'https://localhost:5173',
+      'https://localhost:5175',
+      'https://eyongkart.com',
+      'https://www.eyongkart.com',
     ], // Specify allowed origins
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     // allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
@@ -63,8 +63,8 @@ const logger = (req, res, next) => {
 
 app.use(logger);
 
-app.get("/", (req, res) => {
-  res.send("Server is running");
+app.get('/', (req, res) => {
+  res.send('Server is running');
 });
 // app.use(express.static);
 // app.post('/order', async (req, res) => {
@@ -110,38 +110,38 @@ app.get("/", (req, res) => {
 //   });
 // });
 
-app.use("/user", userRoutes);
-app.use("/category", categoryRoutes);
-app.use("/product", productRoutes);
-app.use("/productVariant", productVariantRoutes);
-app.use("/wishlist", wishlistRoutes);
-app.use("/cart", cardListRoutes);
-app.use("/order", orderProductRoutes);
-app.use("/carousel", carouselRoutes);
-app.use("/contact", contactRoutes);
-app.use("/subCategory", subCategoryRoutes);
-app.use("/shop", shopRoutes);
-app.use("/collection", collectionRoutes);
-app.use("/commentrating", commentRatingRoutes);
-app.use("/delivery", deliveryRoutes);
-app.use("/footersub", footerSubHeadingRoutes);
-app.use("/footerlink", footerLinkRoutes);
-app.use("/footer", footerRoutes);
-app.use("/aboutus", aboutusRoutes);
-app.use("/pricerange", pricerangeRoutes);
-app.use("/address", addressRoutes);
-app.use("/admin", adminRoutes);
-app.use("/test", testRoutes);
+app.use('/user', userRoutes);
+app.use('/category', categoryRoutes);
+app.use('/product', productRoutes);
+app.use('/productVariant', productVariantRoutes);
+app.use('/wishlist', wishlistRoutes);
+app.use('/cart', cardListRoutes);
+app.use('/order', orderProductRoutes);
+app.use('/carousel', carouselRoutes);
+app.use('/contact', contactRoutes);
+app.use('/subCategory', subCategoryRoutes);
+app.use('/shop', shopRoutes);
+app.use('/collection', collectionRoutes);
+app.use('/commentrating', commentRatingRoutes);
+app.use('/delivery', deliveryRoutes);
+app.use('/footersub', footerSubHeadingRoutes);
+app.use('/footerlink', footerLinkRoutes);
+app.use('/eyongkartInfo', eyongkartInfoRoutes);
+app.use('/aboutus', aboutusRoutes);
+app.use('/pricerange', pricerangeRoutes);
+app.use('/address', addressRoutes);
+app.use('/admin', adminRoutes);
+app.use('/test', testRoutes);
 app.use(errorHandler);
 connect();
 
-// const options = {
-// key: fs.readFileSync("./certificates/localhost-key.pem"),
-// cert: fs.readFileSync("./certificates/localhost.pem"),
-// };
+const options = {
+  key: fs.readFileSync('./certificates/localhost-key.pem'),
+  cert: fs.readFileSync('./certificates/localhost.pem'),
+};
 
-// const server = https.createServer(options, app);
+const server = https.createServer(options, app);
 
-app.listen(5000, () => {
+server.listen(5000, () => {
   console.log(`Server is running on port ${PORT}`);
 });

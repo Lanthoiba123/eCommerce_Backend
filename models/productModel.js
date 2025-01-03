@@ -125,40 +125,23 @@ const productSchema = new mongoose.Schema(
       },
     ],
 
-    // Ratings and reviews
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    totalReviews: {
-      type: Number,
-      default: 0,
-    },
+    // // Ratings and reviews
+    // averageRating: {
+    //   type: Number,
+    //   default: 0,
+    //   min: 0,
+    //   max: 5,
+    // },
+    // totalReviews: {
+    //   type: Number,
+    //   default: 0,
+    // },
 
-    // Artisan/Weaver information
-    artisan: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'artisan',
-    },
-
-    // Certifications and authenticity
-    certifications: [
-      {
-        name: String,
-        certificateNumber: String,
-        issuedBy: String,
-        validUntil: Date,
-      },
-    ],
-
-    // Geographic indication
-    geographicIndication: {
-      region: String, // Example: "Kanchipuram"
-      state: String, // Example: "Tamil Nadu"
-      isGICertified: Boolean, // Example: true - indicates product has GI certification
-    },
+    // // Artisan/Weaver information
+    // artisan: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'artisan',
+    // },
   },
   {
     timestamps: true,

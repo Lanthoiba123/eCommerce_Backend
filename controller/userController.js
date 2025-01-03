@@ -11,6 +11,8 @@ const asyncHandler = require('express-async-handler');
 const validator = require('validator');
 const Address = require('../models/addressModel.js');
 const { ADMIN_ROLES } = require('../constants/constants.js');
+const { OAuth2Client } = require('google-auth-library');
+
 // bcrypt.genSalt(10,(err,salt)=>{
 //   if (!err){
 //     bcrypt.hash(user.password, s  async(err,hpass)=>{
@@ -197,24 +199,16 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new Error('Invalid email');
   }
 
-  // validating password
-  if (!validator.isStrongPassword(password)) {
-    res.statusCode = 400;
-    throw new Error(
-      'Password must be at least 8 characters long, 1 uppercase, 1 lowercase, 1 number, 1 special character'
-    );
-  }
-
   const userExist = await User.findOne({ email });
   if (!userExist) {
     res.statusCode = 400;
-    throw new Error('Email does not register');
+    throw new Error('No account found with this email. Please sign up first.');
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, userExist.password);
   if (!isPasswordCorrect) {
     res.statusCode = 400;
-    throw new Error('Password is incorrect');
+    throw new Error('Incorrect password');
   }
   const { password: _, ...userWithoutPassword } = userExist.toObject();
 
@@ -227,6 +221,55 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true, // only send cookie over https
     sameSite: 'none', // allow cookie to be sent to different domains
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  return res.json({
+    message: 'Login Successful',
+    user: userWithoutPassword,
+  });
+});
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    res.statusCode = 400;
+    throw new Error('Token is required');
+  }
+
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const { email, name, sub: googleId, picture } = ticket.getPayload();
+  let user = await User.findOne({ $or: [{ email }, { googleId }] });
+
+  console.log(ticket.getPayload());
+
+  if (!user) {
+    user = await User.create({
+      userName: name,
+      email,
+      googleId,
+      picture,
+      phone: '0000000000',
+    });
+  }
+
+  const { password: _, ...userWithoutPassword } = user.toObject();
+
+  const jwtToken = jwt.sign(userWithoutPassword, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
+
+  res.cookie('jwt', jwtToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   return res.json({
@@ -288,4 +331,5 @@ module.exports = {
   generateOTP,
   getTotalUserCount,
   logoutUser,
+  googleLogin,
 };

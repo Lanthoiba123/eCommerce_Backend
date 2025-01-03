@@ -18,6 +18,7 @@ const {
   // getCollectionNamesByCategory,
   getCollectionNamesByCategoryAndSubcategory,
   getFilteredProducts,
+  getCarouselProducts,
 } = require('../controller/productController');
 const multer = require('multer');
 const authenticateAdmin = require('../middlewares/authenticateAdmin');
@@ -33,6 +34,7 @@ router.post(
   createProduct
 );
 router.get('/allproducts', getAllProducts);
+router.get('/carousel', getCarouselProducts);
 router.get('/getOneProduct/:id', getProductById);
 router.put(
   '/update/:id',

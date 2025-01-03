@@ -15,9 +15,22 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Email is compulsory to fill up'],
       unique: true,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values
+    },
+    picture: {
+      type: String,
+    },
     password: {
       type: String,
-      required: [true, 'Password is compulsory to fill up'],
+      required: [
+        function () {
+          return !this.googleId;
+        },
+        'Password is required for email registration',
+      ],
     },
     phone: {
       type: Number,
